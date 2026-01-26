@@ -1,0 +1,11 @@
+namespace: default
+
+migration_job_name: pvc-migrate-job
+
+source_pvc: old-pvc
+destination_pvc: new-pvc
+
+source_mount_path: /src
+destination_mount_path: /dst
+
+rsync_image: alpine:3.19
