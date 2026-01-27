@@ -1,0 +1,54 @@
+- name: Create migration pod
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: "{{ migration_pod_name }}"
+        namespace: "{{ namespace }}"
+      spec:
+        restartPolicy: Never
+        securityContext:
+          fsGroup: "{{ fs_group }}"
+        containers:
+          - name: rsync
+            image: "{{ rsync_image }}"
+            command: ["bash", "-c", "sleep infinity"]
+            securityContext:
+              runAsUser: 0
+            volumeMounts:
+              - name: source
+                mountPath: /data-old
+              - name: destination
+                mountPath: /data-new
+        volumes:
+          - name: source
+            persistentVolumeClaim:
+              claimName: "{{ source_pvc }}"
+          - name: destination
+            persistentVolumeClaim:
+              claimName: "{{ destination_pvc }}"
+
+- name: Wait for migration pod
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ namespace }}"
+    name: "{{ migration_pod_name }}"
+  register: pod
+  until: pod.resources[0].status.phase == "Running"
+  retries: 30
+  delay: 5
+
+- name: Rsync source PVC to destination PVC
+  kubernetes.core.k8s_exec:
+    namespace: "{{ namespace }}"
+    pod: "{{ migration_pod_name }}"
+    command:
+      - bash
+      - -c
+      - |
+        apt update && apt install -y rsync &&
+        rsync -aHAX --numeric-ids --delete \
+          /data-old/ \
+          /data-new/

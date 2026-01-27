@@ -1,0 +1,8 @@
+- name: Assert required variables
+  ansible.builtin.assert:
+    that:
+      - source_pvc | length > 0
+      - destination_pvc | length > 0
+
+- import_tasks: migrate.yaml
+- import_tasks: validate.yaml

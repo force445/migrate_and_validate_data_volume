@@ -1,0 +1,9 @@
+namespace: default
+
+source_pvc: ""
+destination_pvc: ""
+
+migration_pod_name: pvc-migrate
+
+rsync_image: ubuntu:22.04
+fs_group: 1001

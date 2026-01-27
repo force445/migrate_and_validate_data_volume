@@ -1,0 +1,31 @@
+- name: Validate file count (source)
+  kubernetes.core.k8s_exec:
+    namespace: "{{ namespace }}"
+    pod: "{{ migration_pod_name }}"
+    command:
+      - bash
+      - -c
+      - find /data-old -type f | wc -l
+  register: src_count
+
+- name: Validate file count (destination)
+  kubernetes.core.k8s_exec:
+    namespace: "{{ namespace }}"
+    pod: "{{ migration_pod_name }}"
+    command:
+      - bash
+      - -c
+      - find /data-new -type f | wc -l
+  register: dst_count
+
+- name: Assert file counts match
+  ansible.builtin.assert:
+    that:
+      - src_count.stdout == dst_count.stdout
+
+- name: Delete migration pod
+  kubernetes.core.k8s:
+    state: absent
+    kind: Pod
+    namespace: "{{ namespace }}"
+    name: "{{ migration_pod_name }}"

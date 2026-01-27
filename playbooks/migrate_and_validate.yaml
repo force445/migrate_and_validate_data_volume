@@ -1,0 +1,7 @@
+- name: Migrate single-user PVC safely
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - migrate
