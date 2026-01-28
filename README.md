@@ -8,3 +8,6 @@ ansible-playbook migrate_and_validate.yaml \
   -e source_pvc=<source_pvc_name> \
   -e destination_pvc=<destination_pvc_name>
 ```
+
+## Reminder
+Create your vault to protect your secrets.
