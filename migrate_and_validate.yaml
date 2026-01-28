@@ -5,3 +5,6 @@
 
   roles:
     - migrate_validate
+
+  vars_files:
+    - vault/secrets.yaml

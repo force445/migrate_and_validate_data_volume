@@ -2,9 +2,9 @@
 
 
 ```bash
-ansible-playbook migrate_pvc.yaml \
+ansible-playbook migrate_and_validate.yaml \
   --ask-vault-pass \
-  -e namespace=jupyterhub \
-  -e source_pvc=jupyterhub-claim-user1 \
-  -e destination_pvc=jupyterhub-claim-user1-temp
+  -e namespace=<pvc_namespace> \
+  -e source_pvc=<source_pvc_name> \
+  -e destination_pvc=<destination_pvc_name>
 ```

@@ -1,22 +1,18 @@
 - name: Validate file count (source)
-  kubernetes.core.k8s_exec:
-    namespace: "{{ namespace }}"
-    pod: "{{ migration_pod_name }}"
-    command:
-      - bash
-      - -c
-      - find /data-old -type f | wc -l
+  ansible.builtin.command: >
+    kubectl exec -n {{ namespace }} {{ migration_pod_name }}
+    -- sh -c "find /data-old -type f | wc -l"
   register: src_count
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: Validate file count (destination)
-  kubernetes.core.k8s_exec:
-    namespace: "{{ namespace }}"
-    pod: "{{ migration_pod_name }}"
-    command:
-      - bash
-      - -c
-      - find /data-new -type f | wc -l
+  ansible.builtin.command: >
+    kubectl exec -n {{ namespace }} {{ migration_pod_name }}
+    -- sh -c "find /data-new -type f | wc -l"
   register: dst_count
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: Assert file counts match
   ansible.builtin.assert:
@@ -29,3 +25,5 @@
     kind: Pod
     namespace: "{{ namespace }}"
     name: "{{ migration_pod_name }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"

@@ -12,9 +12,9 @@
         securityContext:
           fsGroup: "{{ fs_group }}"
         containers:
-          - name: rsync
-            image: "{{ rsync_image }}"
-            command: ["bash", "-c", "sleep infinity"]
+          - name: shell
+            image: instrumentisto/rsync-ssh
+            command: ["sh", "-c", "sleep infinity"]
             securityContext:
               runAsUser: 0
             volumeMounts:
@@ -38,23 +38,18 @@
     namespace: "{{ namespace }}"
     name: "{{ migration_pod_name }}"
   register: pod
-  until: pod.resources[0].status.phase == "Running"
+  until: 
+    - pod.resources[0].status.phase == "Running"
+    - pod.resources[0].status.containerStatuses is defined
+    - pod.resources[0].status.containerStatuses[0].ready == true
   retries: 30
   delay: 5
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
 
-- name: Rsync source PVC to destination PVC
-  kubernetes.core.k8s_exec:
-    namespace: "{{ namespace }}"
-    pod: "{{ migration_pod_name }}"
-    command:
-      - bash
-      - -c
-      - |
-        apt update && apt install -y rsync &&
-        rsync -aHAX --numeric-ids --delete \
-          /data-old/ \
-          /data-new/
+- name: Rsync via kubectl exec
+  ansible.builtin.command: >
+    kubectl exec -n {{ namespace }} {{ migration_pod_name }}
+    -- rsync -aHAX --numeric-ids --delete /data-old/ /data-new/
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
